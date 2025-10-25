@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import { protect } from './middlewares/authMiddlewares.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 
 dotenv.config(); //Load environment variables
@@ -14,6 +15,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 
 
 app.get("/api/private", protect, (req, res) => {
