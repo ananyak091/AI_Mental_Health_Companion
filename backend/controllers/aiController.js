@@ -1,4 +1,5 @@
 import axios from "axios";
+import Mood from "../models/moodModel.js";
 
 const CRISIS_KEYWORDS = [
   "suicide", "kill myself", "end my life", "want to die", "hurt myself",
@@ -106,7 +107,29 @@ export const analyze = async (req, res) => {
 
     // Return response
     const tip = randomTip(emotion);
-    res.json({ emotion, confidence, reply, tip });
+
+    // Optional: save the mood entry if the request is authenticated and req.user exists
+let saved = false;
+try {
+  if (req.user && req.user.id) {
+    saved = await Mood.create({
+      userId: req.user.id,
+      userText: text,
+      emotion,
+      confidence: Number(confidence),
+      botReply: reply,
+      tip,
+      source: reply && reply.length > 0 ? "groq" : "fallback"
+    });
+    // if you want to avoid returning entire doc, set saved = true
+    saved = true;
+  }
+} catch (saveErr) {
+  console.warn("Failed to save mood entry:", saveErr.message || saveErr);
+  saved = false;
+}
+
+    res.json({ emotion, confidence, reply, tip, saved });
   } catch (err) {
     console.error("Error:", err.message);
     res.status(500).json({ error: err.message });
